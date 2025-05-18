@@ -51,9 +51,37 @@ export async function signup(req, res) {
 }
 
 export async function login(req, res) {
-  res.send("login");
+ try{
+    const {email,password} = req.body;
+    if(!email || !password){
+      return res.status(400).json({message:"All fields are required"})
+    }
+    const user = await User.findOne({email});
+    if(!user){
+      return res.status(404).json({message:"User not found"})
+    }
+    const isPasswordValid = await user.matchPassword(password);
+    if(!isPasswordValid){
+      return res.status(401).json({message:"Invalid credentials"})
+    }
+    const token = jwt.sign({UserId:user._id},process.env.JWT_SECRET_KEY,{
+      expiresIn:"7d"
+    })
+    res.cookie("token",token,{
+      httpOnly:true,
+      secure:process.env.NODE_ENV === "production",
+      sameSite:"strict",
+      maxAge:7*24*60*60*1000
+    })
+    return res.status(200).json({token})
+ }
+ catch(error){
+    console.log("error in login controller",error);
+    return res.status(500).json({message:"Server error"})
+ }
 }
 
 export async function logout(req, res) {
-  res.send("logout");
+  res.clearCookie("token");
+  return res.status(200).json({message:"Logout successful"})
 }
