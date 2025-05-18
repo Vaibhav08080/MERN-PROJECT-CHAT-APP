@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import {uperStreamUser} from "../lib/stream.js";
+import { uperStreamUser } from "../lib/stream.js";
 
 import User from "../models/User.js";
 export async function signup(req, res) {
@@ -41,7 +41,7 @@ export async function signup(req, res) {
       await uperStreamUser({
         id: newUser._id.toString(),
         name: newUser.fullName,
-        image: newUser.avatar || ""  // Fixed: using avatar instead of ProfilePic
+        image: newUser.ProfilePic || "", 
       });
       console.log(`Stream user created successfully for ${newUser._id}`);
     } catch (error) {
@@ -49,19 +49,23 @@ export async function signup(req, res) {
       // Option 1: Delete the MongoDB user if Stream user creation fails
       // await User.findByIdAndDelete(newUser._id);
       // return res.status(500).json({ message: "Failed to create chat user" });
-      
+
       // Option 2: Continue without Stream (commented out for now)
       console.log("Continuing without Stream user");
     }
-    const token = jwt.sign({ UserId: newUser._id }, process.env.JWT_SECRET_KEY,{
-      expiresIn: "7d"
+    const token = jwt.sign(
+      { UserId: newUser._id },
+      process.env.JWT_SECRET_KEY,
+      {
+        expiresIn: "7d",
+      }
+    );
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    res.cookie("token",token,{
-      httpOnly:true,
-      secure:process.env.NODE_ENV === "production",
-      sameSite:"strict",
-      maxAge:7*24*60*60*1000
-    })
     return res.status(201).json({ token });
   } catch (error) {
     console.log(error);
@@ -70,40 +74,97 @@ export async function signup(req, res) {
 }
 
 export async function login(req, res) {
- try{
-    const {email,password} = req.body;
-    if(!email || !password){
-      return res.status(400).json({message:"All fields are required"})
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
     }
-    const user = await User.findOne({email});
-    if(!user){
-      return res.status(404).json({message:"User not found"})
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
     const isPasswordValid = await user.matchPassword(password);
-    if(!isPasswordValid){
-      return res.status(401).json({message:"Invalid credentials"})
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-
-
-    const token = jwt.sign({UserId:user._id},process.env.JWT_SECRET_KEY,{
-      expiresIn:"7d"
-    })
-    res.cookie("token",token,{
-      httpOnly:true,
-      secure:process.env.NODE_ENV === "production",
-      sameSite:"strict",
-      maxAge:7*24*60*60*1000
-    })
-    return res.status(200).json({token})
- }
- catch(error){
-    console.log("error in login controller",error);
-    return res.status(500).json({message:"Server error"})
- }
+    const token = jwt.sign({ UserId: user._id }, process.env.JWT_SECRET_KEY, {
+      expiresIn: "7d",
+    });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    return res.status(200).json({ token });
+  } catch (error) {
+    console.log("error in login controller", error);
+    return res.status(500).json({ message: "Server error" });
+  }
 }
 
 export async function logout(req, res) {
   res.clearCookie("token");
-  return res.status(200).json({message:"Logout successful"})
+  return res.status(200).json({ message: "Logout successful" });
+}
+
+export async function onBoard(req, res) {
+  try {
+    const userId = req.user._id;
+    const {
+      fullName,
+      bio,
+      ProfilePic,
+      nativelanguage,
+      learinglanguages,
+      location,
+    } = req.body;
+    if (
+      !fullName ||
+      !bio ||
+      !ProfilePic ||
+      !nativelanguage ||
+      !learinglanguages ||
+      !location
+    ) {
+      return res
+        .status(400)
+        .json({
+          message: "All fields are required",
+          missingField: [
+            !fullName && "fullName",
+            !bio && "bio",
+            !ProfilePic && "ProfilePic",
+            !nativelanguage && "nativelanguage",
+            !learinglanguages && "learinglanguages",
+            !location && "location",
+          ].filter(Boolean),
+        });
+    }
+    const updatedUser =await User.findByIdAndUpdate(userId,{
+        ...req.body,
+        isOnBoarded:true,
+    },{new:true})
+    
+
+    if (!updatedUser) {
+      return res.status(404).json({message:"User not found"})
+    }
+    try {
+        await uperStreamUser({
+            id:updatedUser._id.toString(),
+            name:updatedUser.fullName,
+            image:updatedUser.ProfilePic,
+        })
+        console.log(`Stream user updated successfully for ${updatedUser._id}`);
+    } catch (error) {
+        console.log("error in onBoard controller", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+    return res.status(200).json({message:"User onboarding successful",updatedUser});
+  } catch (error) {
+    console.log("error in onBoard controller", error);
+    return res.status(500).json({ message: "Server error" });
+  }
 }
