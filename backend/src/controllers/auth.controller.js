@@ -1,4 +1,6 @@
 import jwt from "jsonwebtoken";
+import {uperStreamUser} from "../lib/stream.js";
+
 import User from "../models/User.js";
 export async function signup(req, res) {
   const { fullName, email, password } = req.body;
@@ -34,6 +36,23 @@ export async function signup(req, res) {
       avatar: randomAvatar,
     });
 
+    try {
+      // Create user in Stream
+      await uperStreamUser({
+        id: newUser._id.toString(),
+        name: newUser.fullName,
+        image: newUser.avatar || ""  // Fixed: using avatar instead of ProfilePic
+      });
+      console.log(`Stream user created successfully for ${newUser._id}`);
+    } catch (error) {
+      console.error("Error creating Stream user:", error);
+      // Option 1: Delete the MongoDB user if Stream user creation fails
+      // await User.findByIdAndDelete(newUser._id);
+      // return res.status(500).json({ message: "Failed to create chat user" });
+      
+      // Option 2: Continue without Stream (commented out for now)
+      console.log("Continuing without Stream user");
+    }
     const token = jwt.sign({ UserId: newUser._id }, process.env.JWT_SECRET_KEY,{
       expiresIn: "7d"
     });
@@ -64,6 +83,9 @@ export async function login(req, res) {
     if(!isPasswordValid){
       return res.status(401).json({message:"Invalid credentials"})
     }
+
+
+
     const token = jwt.sign({UserId:user._id},process.env.JWT_SECRET_KEY,{
       expiresIn:"7d"
     })
