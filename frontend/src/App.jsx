@@ -10,6 +10,7 @@ import { Toaster } from "react-hot-toast";
 import { Navigate } from "react-router";
 import PageLoader from "./components/pageloader";
 import useAuthUser from "./hooks/useAuthUser";
+import Layout from "./components/layout.jsx";
 const App = () => {
   // tanstack query crash course
 
@@ -21,11 +22,11 @@ const isOnBoarded =authUser?.isOnBoarded;
 
   if (isLoading) return <PageLoader />;
   return (
-    <div>
+    <div className="h-screen" data-theme="night">
       <Routes>
         <Route
           path="/"
-          element={isAuthenticated && isOnBoarded ? (<HomePage />) : (<Navigate to={!isAuthenticated ? "/login" : "/onboarding"}/>)}
+          element={isAuthenticated && isOnBoarded ? (<Layout showSidebar={true}><HomePage /></Layout>) : (<Navigate to={!isAuthenticated ? "/login" : "/onboarding"}/>)}
         />
         <Route
           path="/signup"
