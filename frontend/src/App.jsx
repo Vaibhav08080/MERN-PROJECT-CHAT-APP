@@ -11,6 +11,7 @@ import { Navigate } from "react-router";
 import PageLoader from "./components/pageloader";
 import useAuthUser from "./hooks/useAuthUser";
 import Layout from "./components/layout.jsx";
+import { useThemeStore } from "./store/useThemeStore.js";
 const App = () => {
   // tanstack query crash course
 
@@ -19,10 +20,11 @@ const {authUser, isLoading} = useAuthUser();
 
 const isAuthenticated = Boolean(authUser);
 const isOnBoarded =authUser?.isOnBoarded;
+const {theme} = useThemeStore();
 
   if (isLoading) return <PageLoader />;
   return (
-    <div className="h-screen" data-theme="night">
+    <div className="h-screen" data-theme={theme}>
       <Routes>
         <Route
           path="/"
