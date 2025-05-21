@@ -9,9 +9,31 @@ import {
 import { Link } from "react-router";
 import { CheckCircleIcon, MapPinIcon, UserPlusIcon, UsersIcon } from "lucide-react";
 import {capitialize} from "../lib/utils";
+import { LANGUAGE_TO_FLAG } from "../constant";
 
-import FriendCard, { getLanguageFlag } from "../components/FriendCard";
+import FriendCard from "../components/FriendCard";
 import NoFriendsFound from "../components/NoFriendsFound";
+
+// Helper function for language flags
+function getLanguageFlag(language) {
+  if (!language) return null;
+  
+  // Get flag code directly from constants
+  const langLower = language.toLowerCase();
+  const countryCode = LANGUAGE_TO_FLAG[langLower];
+  
+  if (countryCode) {
+    return (
+      <img
+        src={`https://flagcdn.com/24x18/${countryCode}.png`}
+        alt={`${langLower} flag`}
+        className="h-3 mr-1 inline-block"
+      />
+    );
+  }
+  
+  return null;
+}
 
 const HomePage = () => {
   const queryClient = useQueryClient();
