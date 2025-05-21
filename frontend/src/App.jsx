@@ -29,11 +29,11 @@ const isOnBoarded =authUser?.isOnBoarded;
         />
         <Route
           path="/signup"
-          element={!isAuthenticated ? <SignUpPage /> : <Navigate to="/" />}
+          element={!isAuthenticated ? <SignUpPage /> : <Navigate to={isOnBoarded ? "/" : "/onboarding"}/>}
         />
         <Route
           path="/login"
-          element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" />}
+          element={!isAuthenticated ? <LoginPage /> : <Navigate to={isOnBoarded ? "/" : "/onboarding"}/>}
         />
         <Route
           path="/notifications"
@@ -48,7 +48,7 @@ const isOnBoarded =authUser?.isOnBoarded;
           element={isAuthenticated ? <ChatPage /> : <Navigate to="/login" />}
         />
         <Route
-          path="/onboarding"
+          path="/onboarding" 
           element={isAuthenticated ?(!isOnBoarded ? <OnBoardingPage /> : <Navigate to="/" />) : <Navigate to="/login" />}
         />
       </Routes>
