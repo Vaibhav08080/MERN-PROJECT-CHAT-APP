@@ -49,7 +49,7 @@ const isOnBoarded =authUser?.isOnBoarded;
         />
         <Route
           path="/onboarding"
-          element={isAuthenticated && !isOnBoarded ? <OnBoardingPage /> : <Navigate to="/" />}
+          element={isAuthenticated ?(!isOnBoarded ? <OnBoardingPage /> : <Navigate to="/" />) : <Navigate to="/login" />}
         />
       </Routes>
       <Toaster />
