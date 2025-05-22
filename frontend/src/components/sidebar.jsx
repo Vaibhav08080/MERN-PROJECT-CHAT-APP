@@ -29,6 +29,7 @@ const Sidebar = () => {
           <span>Home</span>
         </Link>
 
+        {/* Friends link commented out as requested
         <Link
           to="/friends"
           className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
@@ -38,6 +39,7 @@ const Sidebar = () => {
           <UsersIcon className="size-5 text-base-content opacity-70" />
           <span>Friends</span>
         </Link>
+        */}
 
         <Link
           to="/notifications"
