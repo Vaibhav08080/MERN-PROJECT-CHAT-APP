@@ -43,8 +43,8 @@ const {theme} = useThemeStore();
           element={isAuthenticated && isOnBoarded ? (<Layout showSidebar={true}><NotificationPage /></Layout>) : (<Navigate to={!isAuthenticated ? "/login" : "/onboarding"}/>)}
         />
         <Route
-          path="/call"
-          element={isAuthenticated ? <CallPage /> : <Navigate to="/login" />}
+          path="/call/:id"
+          element={isAuthenticated && isOnBoarded ? (<Layout showSidebar={true}><CallPage /></Layout>) : (<Navigate to={!isAuthenticated ? "/login" : "/onboarding"}/>)}
         />
         <Route
           path="/chat/:id"
